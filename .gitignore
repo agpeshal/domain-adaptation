@@ -1,0 +1,9 @@
+*lsf*
+*.png
+*.zip
+__*
+**/data
+**/.idea
+*.pth
+.DS*
+._.DS*
