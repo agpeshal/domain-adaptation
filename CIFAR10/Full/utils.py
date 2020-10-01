@@ -1,7 +1,7 @@
 import torchvision.transforms as transforms
 import torchvision.datasets as datasets
 from torch.utils.data import DataLoader
-
+import torch
 
 def read_vision_dataset(path, batch_size=128, num_workers=4, dataset='CIFAR10', transform=None):
     '''
@@ -31,3 +31,9 @@ def read_vision_dataset(path, batch_size=128, num_workers=4, dataset='CIFAR10', 
     testloader = DataLoader(testset, batch_size=batch_size, shuffle=False, num_workers=num_workers)
     
     return trainloader, testloader
+
+def random(size, device='cpu'):
+    dist = torch.distributions.normal.Normal(0, 1)
+    samples = dist.rsample((size, 3, 32, 32))
+    samples = samples / samples.reshape(size, -1).norm(dim=1)[:, None, None, None]
+    return samples.to(device)
