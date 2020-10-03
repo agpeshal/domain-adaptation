@@ -18,6 +18,8 @@ from tensorboardX import SummaryWriter
 import argparse
 import numpy as np
 
+from functions import ReverseLayerF
+
 
 class Net(nn.Module):
     def __init__(self, domains=2, classes=10):
@@ -26,9 +28,10 @@ class Net(nn.Module):
         self.fc2 = nn.Linear(512, 256)
         self.fc3 = nn.Linear(256, domains)
 
-    def forward(self, x):
+    def forward(self, x, alpha):
         classify = self.fc1(x)
-        d = self.fc2(x)
+        rev = ReverseLayerF.apply(x, alpha)
+        d = self.fc2(rev)
         d = F.relu(d)
         discriminate = self.fc3(d)
         return classify, discriminate
@@ -47,8 +50,8 @@ class Adaptation:
         self.optimizer = optimizer
         self.writer = writer
 
-    def final_layers(self, features):
-        return self.splitter(features)
+    def final_layers(self, features, alpha):
+        return self.splitter(features, alpha)
 
     def calc_loss(self, classify, discriminate, labels, domains):
 
@@ -77,8 +80,8 @@ class Adaptation:
             outputs = self.model(images)
             outputs_noisy = self.model(images_noisy)
 
-            classify, original = self.final_layers(outputs)
-            classify_noisy, noisy = self.final_layers(outputs_noisy)
+            classify, original = self.final_layers(outputs, alpha)
+            classify_noisy, noisy = self.final_layers(outputs_noisy, alpha)
 
             # 0 for original, 1 for noisy
             domains = torch.cat((torch.zeros(images.size(0), device=self.device),
@@ -87,7 +90,7 @@ class Adaptation:
             
             loss_class, loss_dis = self.calc_loss(classify, discriminate,
                                                   labels, domains)
-            loss = loss_class - alpha * loss_dis
+            loss = loss_class + 0. * loss_dis
             loss.backward()
             self.optimizer.step()
             self.optimizer.zero_grad()
@@ -140,8 +143,8 @@ class Adaptation:
                 outputs = self.model(images)
                 outputs_noisy = self.model(images_noisy)
 
-                classify, original = self.final_layers(outputs)
-                classify_noisy, noisy = self.final_layers(outputs_noisy)
+                classify, original = self.final_layers(outputs, alpha)
+                classify_noisy, noisy = self.final_layers(outputs_noisy, alpha)
 
                 domains = torch.cat((torch.zeros(images.size(0), device=self.device),
                                     torch.ones(images.size(0), device=self.device))).long()
@@ -149,7 +152,7 @@ class Adaptation:
                 
                 loss_class, loss_dis = self.calc_loss(classify, discriminate,
                                                     labels, domains)
-                loss = loss_class - alpha * loss_dis
+                loss = loss_class + 0. * loss_dis
             
                 classifier_loss += loss_class.item()
                 discriminator_loss += loss_dis.item()
@@ -203,7 +206,7 @@ def main():
 
     params = list(classifier.parameters()) + list(discriminator.parameters())
     optimizer = Adam(params, lr=args.lr)
-    scheduler = lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.1)
+    scheduler = lr_scheduler.StepLR(optimizer, step_size=20, gamma=0.2)
     trainloader, testloader = read_vision_dataset('./data', args.batch_size)
     writer = SummaryWriter()
     criterion = nn.CrossEntropyLoss()
@@ -212,8 +215,8 @@ def main():
                      optimizer)
 
     for epoch in range(1, 1 + args.epochs):
-        p = (1e-4 * epoch / args.epochs)
-        alpha = 2 / (1 + np.exp(-0.0001 * p)) - 1
+        p = (1. * epoch / args.epochs)
+        alpha = 2 / (1 + np.exp(-10 * p)) - 1
         print(f'alpha {alpha:.4f}')
         Obj.train(epoch, alpha)
         Obj.test(epoch, alpha)

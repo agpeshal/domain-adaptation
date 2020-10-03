@@ -4,6 +4,8 @@
 __*
 **/data
 **/.idea
+**/.vscode
+**/runs
 *.pth
 .DS*
 ._.DS*
