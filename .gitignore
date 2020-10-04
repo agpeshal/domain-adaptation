@@ -1,11 +1,19 @@
-*lsf*
-*.png
-*.zip
-__*
-**/data
-**/.idea
-**/.vscode
-**/runs
-*.pth
-.DS*
-._.DS*
+# *lsf*
+# *.png
+# *.zip
+# __*
+# **/data
+# **/.idea
+# **/.vscode
+# **/runs
+# **mlruns/
+# **tmp/
+# *.pth
+# .DS*
+# ._.DS*
+
+# Ignore all files
+*
+
+# Except python files
+!*.py
