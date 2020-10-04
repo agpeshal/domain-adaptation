@@ -256,7 +256,8 @@ def main():
             scheduler.step()
 
         log_artifacts(output_dir, artifact_path="events")
-        mlflow.pytorch.log_model(classifier, artifact_path="pytorch-model")
+        mlflow.pytorch.log_model(classifier, artifact_path="model-base")
+        mlflow.pytorch.log_model(discriminator, artifact_path="model-head")
 
 
 if __name__ == "__main__":
