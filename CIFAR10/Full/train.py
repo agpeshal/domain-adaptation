@@ -97,7 +97,7 @@ def main():
     scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=40, gamma=0.1)
     criterion = nn.CrossEntropyLoss()
     for epoch in range(1, 1 + args.epochs):
-        train(net, criterion, trainloader, optimizer, device, epoch)
+        train(net, criterion, optimizer, trainloader, device, epoch)
         test(net, criterion, testloader, best_acc, device, epoch)
         scheduler.step()
 
