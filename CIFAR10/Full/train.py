@@ -13,7 +13,7 @@ from torchsummary import summary
 # Training
 def train(net, criterion, optimizer, trainloader, device, epoch):
     print("\nEpoch: %d" % epoch)
-    net.eval()
+    net.train()
     train_loss = 0
     correct = 0
     total = 0
