@@ -37,7 +37,6 @@ def train(net, criterion, optimizer, trainloader, device, epoch):
 
 
 def test(net, criterion, testloader, device, epoch):
-    global best_acc
     net.eval()
     test_loss = 0
     correct = 0
@@ -60,15 +59,8 @@ def test(net, criterion, testloader, device, epoch):
 
     # Save checkpoint.
     acc = 100.0 * correct / total
-    if acc > best_acc:
-        print("Saving..")
-        state = {
-            "net": net.state_dict(),
-            "acc": acc,
-            "epoch": epoch,
-        }
-        torch.save(state, "ckpt.pth")
-        best_acc = acc
+
+    return acc
 
 
 def main():
@@ -97,8 +89,18 @@ def main():
     criterion = nn.CrossEntropyLoss()
     for epoch in range(1, 1 + args.epochs):
         train(net, criterion, optimizer, trainloader, device, epoch)
-        test(net, criterion, testloader, device, epoch)
+        acc = test(net, criterion, testloader, device, epoch)
         scheduler.step()
+
+        if acc > best_acc:
+            print("Saving..")
+            state = {
+                "net": net.state_dict(),
+                "acc": acc,
+                "epoch": epoch,
+            }
+            torch.save(state, "ckpt.pth")
+            best_acc = acc
 
 
 if __name__ == "__main__":
