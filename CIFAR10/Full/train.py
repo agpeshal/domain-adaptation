@@ -71,7 +71,7 @@ def main():
     parser.add_argument("--lr", default=0.1, type=float, help="learning rate")
     parser.add_argument("--batch", default=128, type=int, help="Batch Size")
     parser.add_argument(
-        "--epochs", default=100, type=int, help="Number of training epochs"
+        "--epochs", default=200, type=int, help="Number of training epochs"
     )
     args = parser.parse_args()
 
@@ -87,9 +87,11 @@ def main():
     net = net.to(device)
     net = torch.nn.DataParallel(net)
     summary(net, (3, 32, 32))
-    
-    optimizer = optim.SGD(net.parameters(), lr=args.lr, momentum=0.9, weight_decay=5e-4)
-    scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=20, gamma=0.1)
+
+    optimizer = optim.SGD(net.parameters(), lr=args.lr, momentum=0.9, weight_decay=1e-4)
+    scheduler = optim.lr_scheduler.MultiStepLR(
+        optimizer, milestones=[100, 150], gamma=0.1
+    )
     criterion = nn.CrossEntropyLoss()
     for epoch in range(1, 1 + args.epochs):
         train(net, criterion, optimizer, trainloader, device, epoch)
