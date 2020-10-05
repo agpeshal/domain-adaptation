@@ -23,11 +23,10 @@ def train(net, perturb, batch_size, optimizer, testloader, device, epochs):
         total = 0
         confidence = []
         predictions = []
-        noise = random(batch_size, device)
         total_loss = 0
         for batch_index, (inputs, targets) in enumerate(testloader):
             inputs, targets = inputs.to(device), targets.to(device)
-            inputs = inputs + perturb * noise[: len(targets)]
+            inputs = inputs + perturb * random(inputs.shape, device)
             outputs = net(inputs)
             prob, predicted = softmax(outputs).max(1)
             optimizer.zero_grad()
@@ -42,7 +41,7 @@ def train(net, perturb, batch_size, optimizer, testloader, device, epochs):
 
         print(
             "Epoch {}-- Accuracy: {:.4f}, Loss: {:.4f}".format(
-                epoch + 1, correct / total, total_loss / (batch_index + 1)
+                epoch, correct / total, total_loss / (batch_index + 1)
             )
         )
         log_metric("Accuracy", 1.0 * correct / total, epoch)
@@ -61,7 +60,7 @@ def main():
     )
     parser.add_argument("--lr", default=1e-4, type=float, help="learning rate")
     parser.add_argument(
-        "--epochs", type=int, default=10, help="Number of epochs to fine tune"
+        "--epochs", type=int, default=20, help="Number of epochs to fine tune"
     )
     args = parser.parse_args()
 
@@ -85,7 +84,6 @@ def main():
     experiment_id = mlflow.set_experiment(EXPERIMENT_NAME)
     with mlflow.start_run(experiment_id=experiment_id):
         log_params(vars(args))
-        output_dir = "artifacts"
 
         train(
             net,
@@ -97,7 +95,6 @@ def main():
             args.epochs,
         )
 
-        log_artifacts(output_dir, artifact_path="events")
         mlflow.pytorch.log_model(net, artifact_path="tuned model")
 
 
