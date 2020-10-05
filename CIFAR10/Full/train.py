@@ -5,10 +5,10 @@ import torch.optim as optim
 
 import argparse
 
-from resnet import ResNet18
+import resnet
 from utils import read_vision_dataset
 from tqdm import tqdm
-
+from torchsummary import summary
 
 # Training
 def train(net, criterion, optimizer, trainloader, device, epoch):
@@ -65,6 +65,9 @@ def test(net, criterion, testloader, device, epoch):
 
 def main():
     parser = argparse.ArgumentParser(description="PyTorch CIFAR10 Training")
+    parser.add_argument(
+        "--model", default="resnet56", type=str, help="Model architecture"
+    )
     parser.add_argument("--lr", default=0.1, type=float, help="learning rate")
     parser.add_argument("--batch", default=128, type=int, help="Batch Size")
     parser.add_argument(
@@ -80,10 +83,11 @@ def main():
     # Model
     print("==> Building model..")
 
-    net = ResNet18(num_classes=10)
+    net = resnet.__dict__[args.model]()
     net = net.to(device)
     net = torch.nn.DataParallel(net)
-
+    summary(net, (3, 32, 32))
+    
     optimizer = optim.SGD(net.parameters(), lr=args.lr, momentum=0.9, weight_decay=5e-4)
     scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=20, gamma=0.1)
     criterion = nn.CrossEntropyLoss()
