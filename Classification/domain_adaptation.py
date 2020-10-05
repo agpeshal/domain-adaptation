@@ -12,7 +12,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.backends import cuda
 from torch.optim import Adam, lr_scheduler
-from utils import read_vision_dataset, random
+from dataloader import read_vision_dataset
+from utils import random
 import resnet
 import argparse
 import numpy as np
@@ -197,6 +198,9 @@ def main():
     parser.add_argument(
         "--model", default="resnet56", type=str, help="Model architecture"
     )
+    parser.add_argument(
+        "--dataset", type=str, default="CIFAR10", help="Name of the dataset"
+    )
     parser.add_argument("--batch_size", default=128, type=int, help="Batch Size")
     parser.add_argument(
         "--epochs", default=150, type=int, help="Number of training epochs"
@@ -232,8 +236,9 @@ def main():
     params = list(embedding.parameters()) + list(classifier.parameters())
     optimizer = Adam(params, lr=args.lr)
     scheduler = lr_scheduler.StepLR(optimizer, step_size=args.step, gamma=args.gamma)
-    trainloader, testloader = read_vision_dataset("./data", args.batch_size)
-
+    trainloader, testloader = read_vision_dataset(
+        "./data", batch_size=args.batch, dataset=args.dataset
+    )
     experiment_id = mlflow.set_experiment(EXPERIMENT_NAME)
     with mlflow.start_run(experiment_id=experiment_id):
         log_params(vars(args))

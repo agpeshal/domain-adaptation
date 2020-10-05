@@ -6,7 +6,7 @@ import torch.optim as optim
 import argparse
 
 import resnet
-from utils import read_vision_dataset
+from dataloader import read_vision_dataset
 from tqdm import tqdm
 from torchsummary import summary
 
@@ -68,6 +68,9 @@ def main():
     parser.add_argument(
         "--model", default="resnet56", type=str, help="Model architecture"
     )
+    parser.add_argument(
+        "--dataset", type=str, default="CIFAR10", help="Name of the dataset"
+    )
     parser.add_argument("--lr", default=0.1, type=float, help="learning rate")
     parser.add_argument("--batch", default=128, type=int, help="Batch Size")
     parser.add_argument(
@@ -79,7 +82,9 @@ def main():
     best_acc = 0  # best test accuracy
     # Data
     print("==> Preparing data..")
-    trainloader, testloader = read_vision_dataset("./data", batch_size=args.batch)
+    trainloader, testloader = read_vision_dataset(
+        "./data", batch_size=args.batch, dataset=args.dataset
+    )
     # Model
     print("==> Building model..")
 

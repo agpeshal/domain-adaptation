@@ -11,7 +11,8 @@ from torch.nn.functional import softmax
 
 import argparse
 import resnet
-from utils import read_vision_dataset, random
+from dataloader import read_vision_dataset
+from utils import random
 
 import mlflow
 from mlflow import log_metric, log_params, log_artifacts
@@ -54,6 +55,9 @@ def main():
     parser.add_argument(
         "--model", default="resnet56", type=str, help="Model architecture"
     )
+    parser.add_argument(
+        "--dataset", type=str, default="CIFAR10", help="Name of the dataset"
+    )
     parser.add_argument("--batch_size", type=int, default=128, help="Test batch size")
     parser.add_argument(
         "--perturb", type=float, default=10.0, help="Magnitude of noise to the input"
@@ -68,7 +72,9 @@ def main():
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
     print("==> Preparing data..")
-    trainloader, testloader = read_vision_dataset("./data", batch_size=args.batch_size)
+    trainloader, testloader = read_vision_dataset(
+        "./data", batch_size=args.batch, dataset=args.dataset
+    )
 
     print("==> Building model..")
     net = resnet.__dict__[args.model]()
