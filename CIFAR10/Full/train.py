@@ -93,7 +93,7 @@ def main():
     net = torch.nn.DataParallel(net)
 
     optimizer = optim.SGD(net.parameters(), lr=args.lr, momentum=0.9, weight_decay=5e-4)
-    scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=40, gamma=0.1)
+    scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=20, gamma=0.1)
     criterion = nn.CrossEntropyLoss()
     for epoch in range(1, 1 + args.epochs):
         train(net, criterion, optimizer, trainloader, device, epoch)
