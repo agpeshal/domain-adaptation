@@ -36,8 +36,8 @@ def train(net, criterion, optimizer, trainloader, device, epoch):
     )
 
 
-def test(net, criterion, testloader, best_acc, device, epoch):
-
+def test(net, criterion, testloader, device, epoch):
+    global best_acc
     net.eval()
     test_loss = 0
     correct = 0
@@ -81,8 +81,7 @@ def main():
     args = parser.parse_args()
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
-    global best_acc  # best test accuracy
-    best_acc = 0
+    best_acc = 0  # best test accuracy
     # Data
     print("==> Preparing data..")
     trainloader, testloader = read_vision_dataset("./data", batch_size=args.batch)
@@ -98,7 +97,7 @@ def main():
     criterion = nn.CrossEntropyLoss()
     for epoch in range(1, 1 + args.epochs):
         train(net, criterion, optimizer, trainloader, device, epoch)
-        test(net, criterion, testloader, best_acc, device, epoch)
+        test(net, criterion, testloader, device, epoch)
         scheduler.step()
 
 
