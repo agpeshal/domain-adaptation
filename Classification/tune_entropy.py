@@ -18,7 +18,7 @@ import mlflow
 from mlflow import log_metric, log_params, log_artifacts
 
 
-def train(net, perturb, batch_size, optimizer, testloader, device, epochs):
+def train(net, perturb, optimizer, testloader, device, epochs):
     for epoch in range(1, epochs + 1):
         correct = 0
         total = 0
@@ -94,7 +94,6 @@ def main():
         train(
             net,
             args.perturb,
-            args.batch_size,
             optimizer,
             testloader,
             device,
