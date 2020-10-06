@@ -59,7 +59,6 @@ def test(net, testloader, device, epoch):
             images, labels = images.to(device), labels.to(device)
             outputs = net(images)
             prob, predicted = softmax(outputs).max(1)
-            optimizer.zero_grad()
             loss = torch.dot(prob, 1 - prob) / (labels.size(0))
             # confidence.extend(prob.detach().cpu().numpy())
             # predictions.extend(predicted.detach().cpu().numpy())
