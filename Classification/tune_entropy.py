@@ -18,26 +18,53 @@ import mlflow
 from mlflow import log_metric, log_params, log_artifacts
 
 
-def train(net, perturb, optimizer, testloader, device, epochs):
-    for epoch in range(1, epochs + 1):
-        correct = 0
-        total = 0
-        confidence = []
-        predictions = []
-        total_loss = 0
-        for batch_index, (inputs, targets) in enumerate(testloader):
-            inputs, targets = inputs.to(device), targets.to(device)
-            inputs = inputs + perturb * random(inputs.shape, device)
-            outputs = net(inputs)
+def train(net, perturb, optimizer, testloader, device, epoch):
+    correct = 0
+    total = 0
+    # confidence = []
+    # predictions = []
+    total_loss = 0
+    for batch_index, (images, labels) in enumerate(testloader):
+        images, labels = images.to(device), labels.to(device)
+        images = images + perturb * random(images.shape, device)
+        outputs = net(images)
+        prob, predicted = softmax(outputs).max(1)
+        optimizer.zero_grad()
+        loss = torch.dot(prob, 1 - prob) / (labels.size(0))
+        loss.backward()
+        optimizer.step()
+        # confidence.extend(prob.detach().cpu().numpy())
+        # predictions.extend(predicted.detach().cpu().numpy())
+        total += labels.size(0)
+        correct += predicted.eq(labels).sum().item()
+        total_loss += loss.item()
+
+    print(
+        "Epoch {}-- Accuracy: {:.4f}, Loss: {:.4f}".format(
+            epoch, correct / total, total_loss / (batch_index + 1)
+        )
+    )
+    log_metric("Accuracy_target", 1.0 * correct / total, epoch)
+    log_metric("Loss_target", total_loss / (batch_index + 1), epoch)
+
+
+def test(net, testloader, device, epoch):
+    correct = 0
+    total = 0
+    # confidence = []
+    # predictions = []
+    total_loss = 0
+    with torch.no_grad():
+        for batch_index, (images, labels) in enumerate(testloader):
+            images, labels = images.to(device), labels.to(device)
+            outputs = net(images)
             prob, predicted = softmax(outputs).max(1)
             optimizer.zero_grad()
-            loss = torch.dot(prob, 1 - prob) / (targets.size(0))
-            loss.backward()
-            optimizer.step()
-            confidence.extend(prob.detach().cpu().numpy())
-            predictions.extend(predicted.detach().cpu().numpy())
-            total += targets.size(0)
-            correct += predicted.eq(targets).sum().item()
+            loss = torch.dot(prob, 1 - prob) / (labels.size(0))
+            # confidence.extend(prob.detach().cpu().numpy())
+            # predictions.extend(predicted.detach().cpu().numpy())
+            total += labels.size(0)
+            correct += predicted.eq(labels).sum().item()
             total_loss += loss.item()
 
         print(
@@ -45,12 +72,12 @@ def train(net, perturb, optimizer, testloader, device, epochs):
                 epoch, correct / total, total_loss / (batch_index + 1)
             )
         )
-        log_metric("Accuracy", 1.0 * correct / total, epoch)
-        log_metric("Loss", total_loss / (batch_index + 1), epoch)
+        log_metric("Accuracy_source", 1.0 * correct / total, epoch)
+        log_metric("Loss_source", total_loss / (batch_index + 1), epoch)
 
 
 def main():
-    torch.manual_seed(1)
+
     parser = argparse.ArgumentParser(description="PyTorch CIFAR10 Training")
     parser.add_argument(
         "--model", default="resnet56", type=str, help="Model architecture"
@@ -90,15 +117,17 @@ def main():
     experiment_id = mlflow.set_experiment(EXPERIMENT_NAME)
     with mlflow.start_run(experiment_id=experiment_id):
         log_params(vars(args))
+        for epoch in range(1, args.epochs + 1):
 
-        train(
-            net,
-            args.perturb,
-            optimizer,
-            testloader,
-            device,
-            args.epochs,
-        )
+            train(
+                net,
+                args.perturb,
+                optimizer,
+                testloader,
+                device,
+                epoch,
+            )
+            test(net, testloader, device, epoch)
 
         mlflow.pytorch.log_model(net, artifact_path="tuned model")
 
