@@ -58,7 +58,7 @@ def main():
     parser.add_argument(
         "--dataset", type=str, default="CIFAR10", help="Name of the dataset"
     )
-    parser.add_argument("--batch_size", type=int, default=128, help="Test batch size")
+    parser.add_argument("--batch", type=int, default=128, help="Test batch size")
     parser.add_argument(
         "--perturb", type=float, default=10.0, help="Magnitude of noise to the input"
     )

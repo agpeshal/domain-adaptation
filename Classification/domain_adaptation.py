@@ -201,7 +201,7 @@ def main():
     parser.add_argument(
         "--dataset", type=str, default="CIFAR10", help="Name of the dataset"
     )
-    parser.add_argument("--batch_size", default=128, type=int, help="Batch Size")
+    parser.add_argument("--batch", default=128, type=int, help="Batch Size")
     parser.add_argument(
         "--epochs", default=150, type=int, help="Number of training epochs"
     )
