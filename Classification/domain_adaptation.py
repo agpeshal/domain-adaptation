@@ -215,6 +215,12 @@ def main():
     parser.add_argument(
         "--gamma", default=0.1, type=float, help="Gamma of LR scheduler"
     )
+    parser.add_argument(
+        "--pretrained",
+        action="store-true",
+        defaul=False,
+        help="True when using a pre-traiend model",
+    )
 
     args = parser.parse_args()
 
@@ -227,8 +233,9 @@ def main():
     embedding.linear = nn.Identity()
     embedding = embedding.to(device)
     embedding = nn.DataParallel(embedding)
-    # checkpoint = torch.load("ckpt.pth", map_location=device)
-    # embedding.load_state_dict(checkpoint["net"])
+    if args.pretrained:
+        checkpoint = torch.load("ckpt.pth", map_location=device)
+        embedding.load_state_dict(checkpoint["net"])
     classifier = Classify().to(device)
     classifier = nn.DataParallel(classifier)
     cuda.benchmark = True
