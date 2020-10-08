@@ -218,7 +218,6 @@ def main():
     parser.add_argument(
         "--pretrained",
         action="store_true",
-        defaul=False,
         help="True when using a pre-traiend model",
     )
 
