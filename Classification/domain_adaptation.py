@@ -228,13 +228,13 @@ def main():
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
     embedding = resnet.__dict__[args.model]()
-    # Remove the last layer
-    embedding.linear = nn.Identity()
     embedding = embedding.to(device)
     embedding = nn.DataParallel(embedding)
     if args.pretrained:
         checkpoint = torch.load("ckpt.pth", map_location=device)
         embedding.load_state_dict(checkpoint["net"])
+    # Remove the last layer
+    embedding.module.linear = nn.Identity()
     classifier = Classify().to(device)
     classifier = nn.DataParallel(classifier)
     cuda.benchmark = True
