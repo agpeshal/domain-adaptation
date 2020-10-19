@@ -28,13 +28,15 @@ class Classify(nn.Module):
     def __init__(self, domains=2, classes=10):
         super(Classify, self).__init__()
         self.fc1 = nn.Linear(64, classes)
-        self.fc2 = nn.Linear(64, 64)
-        self.fc3 = nn.Linear(64, domains)
+        self.fc2 = nn.Linear(64, 512)
+        self.fc3 = nn.Linear(512, domains)
+        self.bn1 = nn.BatchNorm1d(512)
 
     def forward(self, x, alpha):
         classify = self.fc1(x)
         rev = ReverseLayerF.apply(x, alpha)
         d = self.fc2(rev)
+        d = self.bn1(d)
         d = F.relu(d)
         discriminate = self.fc3(d)
         return classify, discriminate
@@ -240,6 +242,7 @@ def main():
     cuda.benchmark = True
 
     params = list(embedding.parameters()) + list(classifier.parameters())
+    # params = list(classifier.parameters())
     optimizer = Adam(params, lr=args.lr)
     scheduler = lr_scheduler.StepLR(optimizer, step_size=args.step, gamma=args.gamma)
     trainloader, testloader = read_vision_dataset(
